@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Comprog Reviewer ni Kerr Boy</title>
+<style>
+  :root{
+    --bg:#0d0f14; --card:#151821; --accent:#1e90ff; --accent-glow:0 0 12px #1e90ff;
+    --text:#e9ecf2; --muted:#9aa3b2; --radius:10px;
+  }
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;margin:0;padding:28px;}
+  .wrap{max-width:980px;margin:0 auto;background:var(--card);padding:28px;border-radius:14px;
+        box-shadow:0 10px 40px rgba(0,0,0,.6);border:1px solid #232734;}
+  h1{margin:0 0 18px 0;color:var(--accent);text-shadow:var(--accent-glow);text-align:center;}
+  .meta{color:var(--muted);text-align:center;margin-bottom:18px;}
+  .q{background:#141822;padding:14px;border-radius:10px;margin-bottom:12px;border-left:4px solid var(--accent);
+     transition:.12s;box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  .q:hover{transform:translateX(6px);box-shadow:0 12px 30px rgba(30,144,255,0.08);}
+  .q strong{display:block;margin-bottom:8px;}
+  .choices label{display:block;cursor:pointer;padding:6px 0;color:var(--text);}
+  input[type="radio"]{transform:scale(1.15);margin-right:8px;accent-color:var(--accent);}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  button{background:var(--accent);color:#000;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;
+         box-shadow:var(--accent-glow);font-weight:600}
+  button.secondary{background:#0b1220;color:var(--text);border:1px solid rgba(255,255,255,.04)}
+  #result{margin-top:18px;font-size:20px;color:var(--accent);font-weight:700}
+  #answers{margin-top:14px;background:#0f1724;padding:12px;border-radius:10px;border-left:4px solid #6df6ff;color:var(--muted)}
+  .small{font-size:13px;color:var(--muted);margin-top:8px}
+  @media(max-width:640px){ .wrap{padding:16px} button{width:100%} .controls{flex-direction:column} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Comprog Reviewer ni Kerr Boy?</h1>
+    <p class="meta">womp<strong>wompwomp</strong> — pang malupitang nilalang boy?</p>
+
+    <form id="quiz"></form>
+
+    <div class="controls">
+      <button id="submitBtn" type="button">Submit mo sagot, boy?</button>
+      <button id="showKeyBtn" type="button" class="secondary">Labas sagot dito, boy?</button>
+      <div style="flex:1"></div>
+      <div class="small">Refresh mo boy para umulit?</div>
+    </div>
+
+    <div id="result" aria-live="polite"></div>
+    <div id="answers" style="display:none"></div>
+  </div>
+
+<script>
+// ======= QUESTIONS (60 C++ items) =======
+const questions = [
+{q:"The Bretton Woods System is:", choices:["A military alliance","A post-WWII international monetary system","A cultural group","A migration policy"], correct:1},
+{q:"An institution created under Bretton Woods is:", choices:["UNESCO","World Bank","ASEAN","NATO"], correct:1},
+{q:"International Trade System refers to:", choices:["Local barter system","Global exchange of goods and services","Military trade","Cultural exchange"], correct:1},
+{q:"An example of economic globalization is:", choices:["Local farming","Global outsourcing of jobs","Village markets","Isolation"], correct:1},
+{q:"Neoliberalism promotes:", choices:["Government control","Free-market policies","Isolation","Communism"], correct:1},
+
+{q:"The Global Financial Crisis (2008) started in:", choices:["Asia","USA housing market","Africa","Europe war"], correct:1},
+{q:"A challenge to neoliberalism is:", choices:["Free trade success","Financial instability","Cultural unity","Migration"], correct:1},
+{q:"Internationalism refers to:", choices:["National isolation","Cooperation among countries","Local governance","War system"], correct:1},
+{q:"An international organization is:", choices:["Local club","Group of states working together","School group","Business only"], correct:1},
+{q:"Example of international organization:", choices:["UN","Barangay","Company","School"], correct:0},
+
+{q:"UN stands for:", choices:["United Nations","United Network","Universal Nation","United Nation System"], correct:0},
+{q:"Main role of the UN is:", choices:["War expansion","Peacekeeping and cooperation","Trade monopoly","Migration control"], correct:1},
+{q:"UN peacekeeping force is used to:", choices:["Start wars","Maintain peace","Control media","Increase trade"], correct:1},
+{q:"UNICEF focuses on:", choices:["Oil","Children welfare","Military","Trade"], correct:1},
+{q:"WHO deals with:", choices:["Education","Health","Trade","War"], correct:1},
+
+{q:"Media functions include:", choices:["Only entertainment","Information dissemination","Only politics","Only ads"], correct:1},
+{q:"Global village means:", choices:["Isolated world","World connected by media and tech","Rural society","Local market"], correct:1},
+{q:"Cultural imperialism is:", choices:["Local culture growth","Dominance of one culture over others","Trade policy","Migration"], correct:1},
+{q:"Example of cultural imperialism:", choices:["Local festivals","Hollywood dominance","Village traditions","Farm culture"], correct:1},
+{q:"Critique of cultural imperialism is that:", choices:["It promotes equality","It destroys local cultures","It stops trade","It helps migration"], correct:1},
+
+{q:"Cyber ghettoes refer to:", choices:["Safe online spaces","Digital isolation groups","Government websites","Schools online"], correct:1},
+{q:"Social media can create:", choices:["Only unity","Cyber segregation","No effect","Only education"], correct:1},
+{q:"Religion in globalization is:", choices:["Irrelevant","Both unifying and dividing","Only economic","Only political"], correct:1},
+{q:"Example of religion supporting globalization:", choices:["Interfaith dialogue","Religious war","Isolationism","Ban on trade"], correct:0},
+{q:"Glocalization of religion means:", choices:["Global religion only","Mix of global and local religious practices","No religion","Military religion"], correct:1},
+
+{q:"Regionalization refers to:", choices:["Global trade only","Economic concentration in regions","Isolation","Religion"], correct:1},
+{q:"Regionalism is:", choices:["Political cooperation among states","Local farming","Media system","Migration"], correct:0},
+{q:"Non-state regionalism includes:", choices:["Governments only","NGOs and civil society","Military only","Banks only"], correct:1},
+{q:"Example of non-state regionalism:", choices:["ASEAN","Rainforest Foundation","UN","NATO"], correct:1},
+{q:"A challenge to regionalism is:", choices:["Unity","Populism and nationalism","Trade growth","Peace"], correct:1},
+
+{q:"Global city is defined as:", choices:["Small town","City with global influence","Village","Farm area"], correct:1},
+{q:"Saskia Sassen is known for:", choices:["Global city concept","Migration theory","Climate theory","Trade system"], correct:0},
+{q:"Indicator of globality includes:", choices:["Population only","Economic power","Weather","Religion"], correct:1},
+{q:"Example of global city:", choices:["Manila","New York","Cebu","Davao"], correct:1},
+{q:"Challenge of global cities is:", choices:["Equality","Inequality and poverty","No jobs","No migration"], correct:1},
+
+{q:"Perils of overpopulation include:", choices:["More jobs","Resource depletion","Less migration","Less trade"], correct:1},
+{q:"Malthus theory predicted:", choices:["Food surplus","Population crisis","Trade boom","Migration growth"], correct:1},
+{q:"It's the economy, not the babies means:", choices:["Population alone causes growth","Economy matters more than population","Babies control economy","No link"], correct:1},
+{q:"Green Revolution improved:", choices:["Technology only","Food production","Migration","Media"], correct:1},
+{q:"Women and reproductive rights focus on:", choices:["Military","Choice in family planning","Trade","War"], correct:1},
+
+{q:"Feminist perspective argues:", choices:["Population is main cause of poverty","Inequality causes poverty","Only migration matters","War causes everything"], correct:1},
+{q:"Population growth affects food security by:", choices:["Increasing food surplus","Creating demand pressure","No effect","Stopping farming"], correct:1},
+{q:"Migration benefit includes:", choices:["Brain drain only","Remittances","War","Isolation"], correct:1},
+{q:"Brain drain refers to:", choices:["Loss of skilled workers","Increase in jobs","Food shortage","Trade growth"], correct:0},
+{q:"Human trafficking is:", choices:["Legal migration","Exploitation of people","Tourism","Education system"], correct:1},
+
+{q:"Integration means:", choices:["Separation","Adaptation of migrants and society","Isolation","Conflict"], correct:1},
+{q:"Environmental problem example:", choices:["Pollution","Education","Trade","Media"], correct:0},
+{q:"Man-made pollution comes from:", choices:["Natural disasters only","Human activity","Stars","Ocean"], correct:1},
+{q:"Climate change is caused by:", choices:["CO2 buildup","Water cycle","Moon","Wind only"], correct:0},
+{q:"Global warming is addressed by:", choices:["Kyoto Protocol","Trade wars","Migration laws","Cultural change"], correct:0},
+
+{q:"Paris Agreement aims to:", choices:["Increase emissions","Reduce global warming","Stop trade","Stop migration"], correct:1},
+{q:"The Global Filipino refers to:", choices:["Only local workers","Filipinos contributing globally","Only students","Only farmers"], correct:1},
+{q:"OFWs contribute through:", choices:["Taxes only","Remittances","War","Media"], correct:1},
+{q:"BPO industry is important because it:", choices:["Reduces jobs","Creates employment and income","Stops migration","Limits trade"], correct:1},
+{q:"Globalization reality for Filipinos is:", choices:["Isolation","Uneven benefits","No change","No economy"], correct:1}
+];
+// ===== build quiz =====
+const quiz = document.getElementById('quiz');
+
+questions.forEach((item, idx) => {
+  const block = document.createElement('div');
+  block.className = 'q';
+  let inner = `<strong>${idx+1}. ${item.q}</strong><div class="choices">`;
+  item.choices.forEach((ch,i)=> inner += `<label><input type="radio" name="q${idx}" value="${i}"> ${String.fromCharCode(65+i)}. ${ch}</label>`);
+  inner += `</div>`;
+  block.innerHTML = inner;
+  quiz.appendChild(block);
+});
+
+// ===== submit behavior =====
+const submitBtn = document.getElementById('submitBtn');
+const showKeyBtn = document.getElementById('showKeyBtn');
+const resultDiv = document.getElementById('result');
+const answersDiv = document.getElementById('answers');
+
+submitBtn.addEventListener('click', () => {
+  // disable inputs immediately (Google Form style)
+  document.querySelectorAll('input[type="radio"]').forEach(i=> i.disabled = true);
+  // compute score
+  let score = 0;
+  questions.forEach((q, i) => {
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    const val = sel ? Number(sel.value) : null;
+    if(val === q.correct) score++;
+  });
+  resultDiv.textContent = `Score: ${score} / ${questions.length}`;
+  // hide answer key until requested (answersDiv remains hidden)
+  answersDiv.style.display = 'none';
+  answersDiv.innerHTML = '';
+});
+
+showKeyBtn.addEventListener('click', () => {
+  // show answer key in answersDiv
+  let html = '<h3>Answer Key</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">';
+  questions.forEach((q,i)=> {
+    html += `<div><strong>${i+1}.</strong> ${String.fromCharCode(65+q.correct)}. ${q.choices[q.correct]}</div>`;
+  });
+  html += '</div>';
+  answersDiv.innerHTML = html;
+  answersDiv.style.display = 'block';
+  // keep inputs disabled (if not already)
+  document.querySelectorAll('input[type="radio"]').forEach(i=> i.disabled = true);
+});
+</script>
+</body>
+</html>
